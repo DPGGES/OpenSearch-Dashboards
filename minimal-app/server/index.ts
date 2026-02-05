@@ -2,6 +2,7 @@ import express from 'express';
 import fetch from 'node-fetch';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { Agent } from 'https';
 
 const app = express();
 const port = Number(process.env.PORT || 3000);
@@ -31,11 +32,17 @@ app.use('/api', async (req, res) => {
   }
 
   try {
-    const response = await fetch(url.toString(), {
+    const fetchOptions: any = {
       method: req.method,
       headers,
       body: ['GET', 'HEAD'].includes(req.method) ? undefined : JSON.stringify(req.body),
-    });
+    };
+
+    if (url.protocol === 'https:') {
+      fetchOptions.agent = new Agent({ rejectUnauthorized: false });
+    }
+
+    const response = await fetch(url.toString(), fetchOptions);
 
     const responseText = await response.text();
     res.status(response.status).send(responseText);

@@ -12,6 +12,9 @@ const toAuthHeaders = (connection: ConnectionInfo): HeadersInit => {
 };
 
 const request = async (connection: ConnectionInfo, path: string, init?: RequestInit) => {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+
   const response = await fetch(`/api${path}`, {
     ...init,
     headers: {
@@ -20,7 +23,10 @@ const request = async (connection: ConnectionInfo, path: string, init?: RequestI
       ...toAuthHeaders(connection),
       ...(init?.headers ?? {}),
     },
+    signal: controller.signal,
   });
+
+  clearTimeout(timeoutId);
 
   if (!response.ok) {
     const errorText = await response.text();
@@ -33,13 +39,14 @@ const request = async (connection: ConnectionInfo, path: string, init?: RequestI
 };
 
 export const fetchIndices = async (connection: ConnectionInfo): Promise<IndexInfo[]> => {
-  const response = await request(connection, '/_cat/indices?format=json');
-  const data = (await response.json()) as Array<Record<string, string>>;
-  return data.map((entry) => ({
-    name: entry.index,
-    docsCount: Number(entry['docs.count'] ?? 0),
-    health: entry.health ?? 'unknown',
-    status: entry.status ?? 'unknown',
+  console.log('Fetching indices from /_cluster/state');
+  const response = await request(connection, '/_cluster/state');
+  const data = (await response.json()) as { metadata: { indices: Record<string, any> } };
+  return Object.keys(data.metadata.indices).map((name) => ({
+    name,
+    docsCount: 0, // Not available in cluster state
+    health: 'unknown',
+    status: data.metadata.indices[name].state ?? 'open',
   }));
 };
 

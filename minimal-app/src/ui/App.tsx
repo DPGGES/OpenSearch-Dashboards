@@ -6,7 +6,7 @@ import { AppLayout } from './Layout';
 import { AppState, ConnectionInfo, Screen } from './types';
 import { createDataViewsForIndices, ensureDataViews, fetchIndices } from '../utils/opensearch';
 
-const DEFAULT_URL = import.meta.env.VITE_DEFAULT_OPENSEARCH_URL || 'http://localhost:9200';
+const DEFAULT_URL = 'https://opensearch:9200';
 
 export const App: React.FC = () => {
   const [state, setState] = useState<AppState>({
@@ -14,8 +14,8 @@ export const App: React.FC = () => {
     connection: {
       url: DEFAULT_URL,
       authType: 'basic',
-      username: '',
-      password: '',
+      username: 'admin',
+      password: 'MyAdmin123!',
       apiKey: '',
     },
     indices: [],

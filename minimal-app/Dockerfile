@@ -1,10 +1,11 @@
 FROM node:20-alpine AS build
 WORKDIR /app
-COPY minimal-app/package.json minimal-app/tsconfig.json minimal-app/vite.config.ts minimal-app/index.html ./
-COPY minimal-app/.npmrc ./.npmrc
-COPY minimal-app/src ./src
-COPY minimal-app/server ./server
+COPY package.json tsconfig.json vite.config.ts index.html ./
+COPY .npmrc ./.npmrc
+COPY src ./src
+COPY server ./server
 RUN npm install --no-audit --no-fund
+ENV VITE_DEFAULT_OPENSEARCH_URL=http://opensearch:9200
 RUN npm run build
 
 FROM node:20-alpine
